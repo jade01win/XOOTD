@@ -814,8 +814,3 @@ CONFIG_PSTORE_FTRACE=y
 CONFIG_PSTORE_DEBUG_FS=y
 CONFIG_FUNCTION_TRACER=y
 # Huaqin add for ZQL1650-358 by liunianliang at 2018/02/08 end
-
-# Huaqin add for ZQL1650-1210 temp by liunianliang at 2018/05/04 start
-CONFIG_GENERIC_BUG_RELATIVE_POINTERS=y
-CONFIG_DEBUG_BUGVERBOSE=y
-# Huaqin add for ZQL1650-1210 temp by liunianliang at 2018/05/04 end
