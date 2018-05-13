@@ -146,89 +146,6 @@ struct generic_get_data_ {
 };
 static struct generic_get_data_ *generic_get_data;
 
-#ifdef CONFIG_DEBUG_FS
-#define OUT_BUFFER_SIZE 56
-#define IN_BUFFER_SIZE 24
-
-static struct timeval out_cold_tv;
-static struct timeval out_warm_tv;
-static struct timeval out_cont_tv;
-static struct timeval in_cont_tv;
-static long out_enable_flag;
-static long in_enable_flag;
-static struct dentry *out_dentry;
-static struct dentry *in_dentry;
-static int in_cont_index;
-/*This var is used to keep track of first write done for cold output latency */
-static int out_cold_index;
-static char *out_buffer;
-static char *in_buffer;
-
-static uint32_t adsp_reg_event_opcode[] = {
-	ASM_STREAM_CMD_REGISTER_PP_EVENTS,
-	ASM_STREAM_CMD_REGISTER_ENCDEC_EVENTS,
-	ASM_STREAM_CMD_REGISTER_IEC_61937_FMT_UPDATE };
-
-static uint32_t adsp_raise_event_opcode[] = {
-	ASM_STREAM_PP_EVENT,
-	ASM_STREAM_CMD_ENCDEC_EVENTS,
-	ASM_IEC_61937_MEDIA_FMT_EVENT };
-
-static int is_adsp_reg_event(uint32_t cmd)
-{
-	int i;
-
-	for (i = 0; i < ARRAY_SIZE(adsp_reg_event_opcode); i++) {
-		if (cmd == adsp_reg_event_opcode[i])
-			return i;
-	}
-	return -EINVAL;
-}
-
-static int is_adsp_raise_event(uint32_t cmd)
-{
-	int i;
-
-	for (i = 0; i < ARRAY_SIZE(adsp_raise_event_opcode); i++) {
-		if (cmd == adsp_raise_event_opcode[i])
-			return i;
-	}
-	return -EINVAL;
-}
-
-int q6asm_get_svc_version(uint32_t service_id)
-{
-	int ret = 0;
-	static int asm_cached_version;
-	size_t ver_size;
-	struct avcs_fwk_ver_info *ver_info = NULL;
-
-	if (service_id == AVCS_SERVICE_ID_ALL) {
-		pr_err("%s: Invalid service id: %d", __func__,
-					AVCS_SERVICE_ID_ALL);
-		return -EINVAL;
-	}
-
-	if (asm_cached_version != 0)
-		return asm_cached_version;
-
-	ver_size = sizeof(struct avcs_get_fwk_version) +
-			sizeof(struct avs_svc_api_info);
-	ver_info = kzalloc(ver_size, GFP_KERNEL);
-	if (ver_info == NULL)
-		return -ENOMEM;
-
-	ret = q6core_get_service_version(service_id, ver_info, ver_size);
-	if (ret < 0)
-		goto done;
-
-	ret = ver_info->services[0].api_version;
-	asm_cached_version = ret;
-done:
-	kfree(ver_info);
-	return ret;
-}
-
 static inline void q6asm_set_flag_in_token(union asm_token_struct *asm_token,
 					   int flag, int flag_offset)
 {
@@ -310,6 +227,25 @@ uint8_t q6asm_get_stream_id_from_token(uint32_t token)
 	return asm_token._token.stream_id;
 }
 EXPORT_SYMBOL(q6asm_get_stream_id_from_token);
+
+
+#ifdef CONFIG_DEBUG_FS
+#define OUT_BUFFER_SIZE 56
+#define IN_BUFFER_SIZE 24
+
+static struct timeval out_cold_tv;
+static struct timeval out_warm_tv;
+static struct timeval out_cont_tv;
+static struct timeval in_cont_tv;
+static long out_enable_flag;
+static long in_enable_flag;
+static struct dentry *out_dentry;
+static struct dentry *in_dentry;
+static int in_cont_index;
+/*This var is used to keep track of first write done for cold output latency */
+static int out_cold_index;
+static char *out_buffer;
+static char *in_buffer;
 
 static int audio_output_latency_dbgfs_open(struct inode *inode,
 							struct file *file)
