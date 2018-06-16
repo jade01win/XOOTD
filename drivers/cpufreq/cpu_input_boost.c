@@ -32,8 +32,6 @@ struct boost_drv {
 	struct delayed_work wake_unboost;
 	struct notifier_block cpu_notif;
 	struct notifier_block fb_notif;
-	unsigned long max_boost_expires;
-	atomic_t max_boost_dur;
 	spinlock_t lock;
 	u32 state;
 };
@@ -102,45 +100,6 @@ static void unboost_all_cpus(struct boost_drv *b)
 
 	clear_boost_bit(b, WAKE_BOOST | INPUT_BOOST);
 	update_online_cpu_policy();
-}
-
-void cpu_input_boost_kick(void)
-{
-	struct boost_drv *b = boost_drv_g;
-
-	if (!b)
-		return;
-
-	queue_work(b->wq, &b->input_boost);
-}
-
-static void __cpu_input_boost_kick_max(struct boost_drv *b,
-	unsigned int duration_ms)
-{
-	unsigned long new_expires;
-
-	/* Skip this boost if there's already a longer boost in effect */
-	spin_lock(&b->lock);
-	new_expires = jiffies + msecs_to_jiffies(duration_ms);
-	if (time_after(b->max_boost_expires, new_expires)) {
-		spin_unlock(&b->lock);
-		return;
-	}
-	b->max_boost_expires = new_expires;
-	spin_unlock(&b->lock);
-
-	atomic_set(&b->max_boost_dur, duration_ms);
-	queue_work(b->wq, &b->max_boost);
-}
-
-void cpu_input_boost_kick_max(unsigned int duration_ms)
-{
-	struct boost_drv *b = boost_drv_g;
-
-	if (!b)
-		return;
-
-	__cpu_input_boost_kick_max(b, duration_ms);
 }
 
 static void input_boost_worker(struct work_struct *work)
@@ -225,15 +184,18 @@ static int fb_notifier_cb(struct notifier_block *nb,
 	struct boost_drv *b = container_of(nb, typeof(*b), fb_notif);
 	struct fb_event *evdata = data;
 	int *blank = evdata->data;
+	u32 state;
 
 	/* Parse framebuffer blank events as soon as they occur */
 	if (action != FB_EARLY_EVENT_BLANK)
 		return NOTIFY_OK;
 
+	state = get_boost_state(b);
+
 	/* Boost when the screen turns on and unboost when it turns off */
 	if (*blank == FB_BLANK_UNBLANK) {
 		set_boost_bit(b, SCREEN_AWAKE);
-		__cpu_input_boost_kick_max(b, CONFIG_WAKE_BOOST_DURATION_MS);
+		queue_work(b->wq, &b->wake_boost);
 	} else {
 		clear_boost_bit(b, SCREEN_AWAKE);
 		unboost_all_cpus(b);
