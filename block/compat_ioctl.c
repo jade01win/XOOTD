@@ -710,7 +710,11 @@ long compat_blkdev_ioctl(struct file *file, unsigned cmd, unsigned long arg)
 			return -EINVAL;
 		bdi = blk_get_backing_dev_info(bdev);
 		return compat_put_long(arg,
+<<<<<<< HEAD
 				       (bdi->ra_pages * PAGE_CACHE_SIZE) / 512);
+=======
+			       (bdev->bd_bdi->ra_pages * PAGE_SIZE) / 512);
+>>>>>>> 9b43d6624833... mm, fs: get rid of PAGE_CACHE_* and page_cache_{get,release} macros
 	case BLKROGET: /* compatible */
 		return compat_put_int(arg, bdev_read_only(bdev) != 0);
 	case BLKBSZGET_32: /* get the logical block size (cf. BLKSSZGET) */
@@ -728,8 +732,12 @@ long compat_blkdev_ioctl(struct file *file, unsigned cmd, unsigned long arg)
 	case BLKFRASET:
 		if (!capable(CAP_SYS_ADMIN))
 			return -EACCES;
+<<<<<<< HEAD
 		bdi = blk_get_backing_dev_info(bdev);
 		bdi->ra_pages = (arg * 512) / PAGE_CACHE_SIZE;
+=======
+		bdev->bd_bdi->ra_pages = (arg * 512) / PAGE_SIZE;
+>>>>>>> 9b43d6624833... mm, fs: get rid of PAGE_CACHE_* and page_cache_{get,release} macros
 		return 0;
 	case BLKGETSIZE:
 		size = i_size_read(bdev->bd_inode);
