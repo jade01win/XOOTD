@@ -404,12 +404,8 @@ static void ion_handle_get(struct ion_handle *handle)
 }
 
 /* Must hold the client lock */
-<<<<<<< HEAD
-static struct ion_handle* ion_handle_get_check_overflow(struct ion_handle *handle)
-=======
 static struct ion_handle *ion_handle_get_check_overflow(
 					struct ion_handle *handle)
->>>>>>> v4.4.153
 {
 	if (atomic_read(&handle->ref.refcount) + 1 == 0)
 		return ERR_PTR(-EOVERFLOW);
