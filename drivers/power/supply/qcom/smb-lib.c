@@ -4231,16 +4231,7 @@ static void CHG_TYPE_judge(struct smb_charger *chg)
 		break;
 	case OTHERS:
 /* Huaqin modify for ZQL1650-74 Countrycode Adapter by diganyun at 2018/03/26 start */
-		if(BR_countrycode == COUNTRY_BR || BR_countrycode == COUNTRY_IN)
-			{
 			usb_max_current = ICL_2000mA;
-			printk("country  BR or IN \n");
-			}
-		else
-			{
-			printk("ASUS_ADAPTER_ID  OTHERS \n");
-			usb_max_current = ICL_1000mA;
-			}
 /* Huaqin modify for ZQL1650-74 Countrycode Adapter by diganyun at 2018/03/26 end */
 		break;
 	case ADC_NOT_READY:
