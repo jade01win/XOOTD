@@ -114,7 +114,6 @@
 		qcom,mdss-has-source-split;
 		qcom,mdss-highest-bank-bit = <0x1>;
 		qcom,mdss-has-decimation;
-		qcom,mdss-idle-power-collapse-enabled;
 		clocks = <&clock_mmss MMSS_MNOC_AHB_CLK>,
 			 <&clock_mmss MMSS_MDSS_AHB_CLK>,
 			 <&clock_mmss MMSS_MDSS_AXI_CLK>,
